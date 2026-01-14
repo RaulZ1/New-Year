@@ -1,106 +1,160 @@
 <!DOCTYPE html>
-button {
-margin-top: 16px;
-padding: 10px 16px;
-border: none;
-border-radius: 8px;
-cursor: pointer;
-font-weight: bold;
-}
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contagem de Ano Novo</title>
 
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --text: #111;
+      --card: rgba(255,255,255,0.85);
+    }
 
-canvas {
-position: fixed;
-inset: 0;
-pointer-events: none;
-}
-</style>
+    body.dark {
+      --bg: #0f2027;
+      --text: #fff;
+      --card: rgba(0,0,0,0.5);
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      transition: 0.3s;
+    }
+
+    .container {
+      background: var(--card);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .time {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .box {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.1);
+    }
+
+    body.dark .box {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .number {
+      font-size: 2.2rem;
+      font-weight: bold;
+    }
+
+    button {
+      margin-top: 16px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+  </style>
 </head>
+
 <body class="dark">
 
+  <canvas id="fogos"></canvas>
 
-<canvas id="fogos"></canvas>
+  <div class="container">
+    <h1>🎆 Contagem para o Ano Novo</h1>
 
+    <div class="time">
+      <div class="box"><div class="number" id="days">0</div>Dias</div>
+      <div class="box"><div class="number" id="hours">0</div>Horas</div>
+      <div class="box"><div class="number" id="minutes">0</div>Minutos</div>
+      <div class="box"><div class="number" id="seconds">0</div>Segundos</div>
+    </div>
 
-<div class="container">
-<h1>🎆 Contagem para o Ano Novo</h1>
-<div class="time">
-<div class="box"><div class="number" id="days">0</div><div class="label">Dias</div></div>
-<div class="box"><div class="number" id="hours">0</div><div class="label">Horas</div></div>
-<div class="box"><div class="number" id="minutes">0</div><div class="label">Minutos</div></div>
-<div class="box"><div class="number" id="seconds">0</div><div class="label">Segundos</div></div>
-</div>
-<button onclick="toggleTema()">🌗 Alternar tema</button>
-</div>
+    <button onclick="toggleTema()">🌗 Alternar tema</button>
+  </div>
 
+  <script>
+    function toggleTema() {
+      document.body.classList.toggle('dark');
+    }
 
-<script>
-function toggleTema() {
-document.body.classList.toggle('dark');
-}
+    function atualizarContagem() {
+      const agora = new Date();
+      const proximoAno = agora.getFullYear() + 1;
+      const anoNovo = new Date(`January 1, ${proximoAno} 00:00:00`);
+      const dif = anoNovo - agora;
 
+      if (dif <= 0) return;
 
-function atualizarContagem() {
-const agora = new Date();
-const proximoAno = agora.getFullYear() + 1;
-const anoNovo = new Date(`January 1, ${proximoAno} 00:00:00`);
-const dif = anoNovo - agora;
+      days.textContent = Math.floor(dif / 86400000);
+      hours.textContent = Math.floor(dif / 3600000) % 24;
+      minutes.textContent = Math.floor(dif / 60000) % 60;
+      seconds.textContent = Math.floor(dif / 1000) % 60;
+    }
 
+    setInterval(atualizarContagem, 1000);
+    atualizarContagem();
 
-if (dif <= 0) {
-iniciarFogos();
-return;
-}
+    // Fogos
+    const canvas = document.getElementById('fogos');
+    const ctx = canvas.getContext('2d');
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
 
+    const particles = [];
 
-document.getElementById('days').textContent = Math.floor(dif / 86400000);
-document.getElementById('hours').textContent = Math.floor(dif / 3600000) % 24;
-document.getElementById('minutes').textContent = Math.floor(dif / 60000) % 60;
-document.getElementById('seconds').textContent = Math.floor(dif / 1000) % 60;
-}
+    function iniciarFogos() {
+      setInterval(() => {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height / 2;
 
+        for (let i = 0; i < 50; i++) {
+          particles.push({
+            x, y,
+            dx: (Math.random() - 0.5) * 6,
+            dy: (Math.random() - 0.5) * 6,
+            life: 100
+          });
+        }
+      }, 400);
+    }
 
-setInterval(atualizarContagem, 1000);
-atualizarContagem();
+    function animar() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p, i) => {
+        p.x += p.dx;
+        p.y += p.dy;
+        p.life--;
+        ctx.fillStyle = `hsl(${Math.random()*360},100%,60%)`;
+        ctx.fillRect(p.x, p.y, 3, 3);
+        if (p.life <= 0) particles.splice(i, 1);
+      });
+      requestAnimationFrame(animar);
+    }
+    animar();
+  </script>
 
-
-// ===== FOGOS =====
-const canvas = document.getElementById('fogos');
-const ctx = canvas.getContext('2d');
-canvas.width = innerWidth;
-canvas.height = innerHeight;
-
-
-function iniciarFogos() {
-setInterval(() => {
-const x = Math.random() * canvas.width;
-const y = Math.random() * canvas.height / 2;
-for (let i = 0; i < 50; i++) {
-partículas.push({
-x, y,
-dx: (Math.random() - 0.5) * 6,
-dy: (Math.random() - 0.5) * 6,
-life: 100
-});
-}
-}, 400);
-}
-
-
-const partículas = [];
-function animarFogos() {
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-partículas.forEach((p, i) => {
-p.x += p.dx;
-p.y += p.dy;
-p.life--;
-ctx.fillStyle = `hsl(${Math.random()*360},100%,60%)`;
-ctx.fillRect(p.x, p.y, 3, 3);
-if (p.life <= 0) partículas.splice(i, 1);
-});
-requestAnimationFrame(animarFogos);
-}
-animarFogos();
-</script>
 </body>
 </html>
